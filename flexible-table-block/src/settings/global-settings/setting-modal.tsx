@@ -55,23 +55,28 @@ import {
 } from '../../controls';
 import { sanitizeUnitValue, cleanEmptyObject } from '../../utils/helper';
 import type { ApiResponse, StoreOptions } from '../../store';
-import type { NoticeProps } from '@wordpress/components/build-types/notice/types';
 
 type Props = {
 	options: StoreOptions;
-	isAdministrator: boolean;
+	canManageOptions: boolean;
 	setIsSettingModalOpen: Dispatch< SetStateAction< boolean > >;
 };
 
 interface NoticeInfo {
-	status?: NoticeProps[ 'status' ];
+	// Mirrors the `status` prop of `@wordpress/components` Notice, whose type is
+	// not exposed through the package's `exports` map.
+	status?: 'warning' | 'success' | 'error' | 'info';
 	message?: string;
 }
 
-export default function SettingModal( { options, isAdministrator, setIsSettingModalOpen }: Props ) {
+export default function SettingModal( {
+	options,
+	canManageOptions,
+	setIsSettingModalOpen,
+}: Props ) {
 	const [ noticeInfo, setNoticeInfo ] = useState< NoticeInfo | undefined >( undefined );
-	const [ isResetPopup, setIsResetPopup ] = useState< boolean >( false );
-	const [ isWaiting, setIsWaiting ] = useState< boolean >( false );
+	const [ isResetPopup, setIsResetPopup ] = useState( false );
+	const [ isWaiting, setIsWaiting ] = useState( false );
 	const [ currentOptions, setCurrentOptions ] = useState< StoreOptions >( options );
 
 	const { setOptions: setStoreOptions } = useDispatch( STORE_NAME );
@@ -766,7 +771,7 @@ export default function SettingModal( { options, isAdministrator, setIsSettingMo
 									} }
 									__nextHasNoMarginBottom
 								/>
-								{ isAdministrator && (
+								{ canManageOptions && (
 									<ToggleControl
 										label={ __(
 											'Show Global setting button to non-administrative users',
@@ -817,38 +822,40 @@ export default function SettingModal( { options, isAdministrator, setIsSettingMo
 				>
 					{ __( 'Save settings', 'flexible-table-block' ) }
 				</Button>
-				<Button
-					isDestructive
-					disabled={ isWaiting }
-					onClick={ () => setIsResetPopup( ! isResetPopup ) }
-					__next40pxDefaultSize
-				>
-					{ __( 'Restore default settings', 'flexible-table-block' ) }
-					{ isResetPopup && (
-						<Popover
-							className="ftb-global-setting-modal__confirm-popover"
-							focusOnMount="firstElement"
-							placement="top"
-							onClose={ () => setIsResetPopup( false ) }
-						>
-							<Spacer as={ VStack } marginBottom={ 0 } padding={ 2 } spacing={ 4 }>
-								<Text as="p">{ __( 'Are you sure?', 'flexible-table-block' ) }</Text>
-								<HStack>
-									<Button isDestructive onClick={ handleResetOptions } size="compact">
-										{ __( 'Restore', 'flexible-table-block' ) }
-									</Button>
-									<Button
-										variant="secondary"
-										onClick={ () => setIsResetPopup( false ) }
-										size="compact"
-									>
-										{ __( 'Cancel', 'flexible-table-block' ) }
-									</Button>
-								</HStack>
-							</Spacer>
-						</Popover>
-					) }
-				</Button>
+				{ canManageOptions && (
+					<Button
+						isDestructive
+						disabled={ isWaiting }
+						onClick={ () => setIsResetPopup( ! isResetPopup ) }
+						__next40pxDefaultSize
+					>
+						{ __( 'Restore default settings', 'flexible-table-block' ) }
+						{ isResetPopup && (
+							<Popover
+								className="ftb-global-setting-modal__confirm-popover"
+								focusOnMount="firstElement"
+								placement="top"
+								onClose={ () => setIsResetPopup( false ) }
+							>
+								<Spacer as={ VStack } marginBottom={ 0 } padding={ 2 } spacing={ 4 }>
+									<Text as="p">{ __( 'Are you sure?', 'flexible-table-block' ) }</Text>
+									<HStack>
+										<Button isDestructive onClick={ handleResetOptions } size="compact">
+											{ __( 'Restore', 'flexible-table-block' ) }
+										</Button>
+										<Button
+											variant="secondary"
+											onClick={ () => setIsResetPopup( false ) }
+											size="compact"
+										>
+											{ __( 'Cancel', 'flexible-table-block' ) }
+										</Button>
+									</HStack>
+								</Spacer>
+							</Popover>
+						) }
+					</Button>
+				) }
 			</Spacer>
 		</Modal>
 	);

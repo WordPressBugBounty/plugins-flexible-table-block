@@ -87,16 +87,16 @@ export default function Table( {
 
 	const colorProps = useColorProps( attributes );
 
-	const [ isSelectMode, setIsSelectMode ] = useState< boolean >( false );
+	const [ isSelectMode, setIsSelectMode ] = useState( false );
 
 	// Manage rendering status as state since some processing may be performed before rendering components.
-	const [ isReady, setIdReady ] = useState< boolean >( false );
+	const [ isReady, setIdReady ] = useState( false );
 	useEffect( () => setIdReady( true ), [] );
 
 	const tableRef = useRef( null );
 	const { createWarningNotice } = useDispatch( noticesStore );
 
-	let isTabMove: boolean = false;
+	let isTabMove = false;
 
 	const isRowSelected = selectedLine && 'sectionName' in selectedLine && 'rowIndex' in selectedLine;
 	const isColumnSelected = selectedLine && 'vColIndex' in selectedLine;
@@ -154,9 +154,7 @@ export default function Table( {
 
 	const onSelectSectionCells = ( sectionName: SectionName ) => {
 		setSelectedCells(
-			vTable[ sectionName ].reduce( ( cells: VCell[], row ) => {
-				return cells.concat( row.cells.filter( ( cell ) => ! cell.isHidden ) );
-			}, [] )
+			vTable[ sectionName ].flatMap( ( row ) => row.cells.filter( ( cell ) => ! cell.isHidden ) )
 		);
 		setSelectedLine( undefined );
 	};
@@ -172,11 +170,9 @@ export default function Table( {
 		} else {
 			setSelectedLine( { sectionName, rowIndex } );
 			setSelectedCells(
-				vTable[ sectionName ].reduce( ( cells: VCell[], row ) => {
-					return cells.concat(
-						row.cells.filter( ( cell ) => cell.rowIndex === rowIndex && ! cell.isHidden )
-					);
-				}, [] )
+				vTable[ sectionName ].flatMap( ( row ) =>
+					row.cells.filter( ( cell ) => cell.rowIndex === rowIndex && ! cell.isHidden )
+				)
 			);
 		}
 	};
@@ -189,31 +185,13 @@ export default function Table( {
 			const vRows = toVirtualRows( vTable );
 
 			setSelectedCells(
-				vRows.reduce(
-					( cells: VCell[], row ) =>
-						cells.concat(
-							row.cells.filter( ( cell ) => cell.vColIndex === vColIndex && ! cell.isHidden )
-						),
-					[]
+				vRows.flatMap( ( row ) =>
+					row.cells.filter( ( cell ) => cell.vColIndex === vColIndex && ! cell.isHidden )
 				)
 			);
 
 			setSelectedLine( { vColIndex } );
 		}
-	};
-
-	const focusFirstCell = () => {
-		if ( ! tableRef.current ) {
-			return;
-		}
-		const tableElement: HTMLTableElement = tableRef.current;
-		const firstTabbableElement = tableElement.querySelector(
-			`th > [contenteditable="true"], td > [contenteditable="true"]`
-		);
-		if ( ! firstTabbableElement ) {
-			return;
-		}
-		( firstTabbableElement as HTMLElement ).focus();
 	};
 
 	const onChangeCellContent = ( content: string, targetCell: VCell ) => {
@@ -513,7 +491,6 @@ export default function Table( {
 														iconSize={ 18 }
 														onClick={ ( event: MouseEvent ) => {
 															onInsertRow( sectionName, rowIndex );
-															focusFirstCell();
 															event.stopPropagation();
 														} }
 													/>
@@ -549,7 +526,6 @@ export default function Table( {
 																	icon={ trash }
 																	onClick={ ( event: MouseEvent ) => {
 																		onDeleteRow( sectionName, rowIndex );
-																		focusFirstCell();
 																		event.stopPropagation();
 																	} }
 																/>
@@ -565,7 +541,6 @@ export default function Table( {
 														iconSize={ 18 }
 														onClick={ ( event: MouseEvent ) => {
 															onInsertColumn( cell, 0 );
-															focusFirstCell();
 															event.stopPropagation();
 														} }
 													/>
@@ -597,7 +572,6 @@ export default function Table( {
 																icon={ trash }
 																onClick={ ( event: MouseEvent ) => {
 																	onDeleteColumn( vColIndex );
-																	focusFirstCell();
 																	event.stopPropagation();
 																} }
 															/>
@@ -617,7 +591,6 @@ export default function Table( {
 														iconSize={ 18 }
 														onClick={ ( event: MouseEvent ) => {
 															onInsertRow( sectionName, rowIndex + rowSpan );
-															focusFirstCell();
 															event.stopPropagation();
 														} }
 													/>
@@ -650,7 +623,6 @@ export default function Table( {
 													iconSize={ 18 }
 													onClick={ ( event: MouseEvent ) => {
 														onInsertColumn( cell, 1 );
-														focusFirstCell();
 														event.stopPropagation();
 													} }
 												/>

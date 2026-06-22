@@ -45,8 +45,8 @@ type Props = {
 export default function TablePlaceholder( { setAttributes }: Props ) {
 	const [ rowCount, setRowCount ] = useState< number | undefined >( DEFAULT_PREVIEW_ROWS );
 	const [ colCount, setColCount ] = useState< number | undefined >( DEFAULT_PREVIEW_COLUMNS );
-	const [ headerSection, setHeaderSection ] = useState< boolean >( false );
-	const [ footerSection, setFooterSection ] = useState< boolean >( false );
+	const [ headerSection, setHeaderSection ] = useState( false );
+	const [ footerSection, setFooterSection ] = useState( false );
 
 	const totalRowCount: number | undefined = rowCount
 		? rowCount + Number( headerSection ) + Number( footerSection )
@@ -74,7 +74,7 @@ export default function TablePlaceholder( { setAttributes }: Props ) {
 
 	const onChangeColumnCount = ( value: string ) => {
 		const parsedValue = parseInt( value, 10 );
-		if ( isNaN( parsedValue ) ) {
+		if ( Number.isNaN( parsedValue ) ) {
 			setColCount( undefined );
 		} else {
 			setColCount( Math.max( 1, Math.min( MAX_PREVIEW_TABLE_COL, parsedValue ) ) );
@@ -82,8 +82,8 @@ export default function TablePlaceholder( { setAttributes }: Props ) {
 	};
 
 	const onChangeRowCount = ( value: string ) => {
-		const parsedValue = parseInt( value );
-		if ( isNaN( parsedValue ) ) {
+		const parsedValue = parseInt( value, 10 );
+		if ( Number.isNaN( parsedValue ) ) {
 			setRowCount( undefined );
 		} else {
 			setRowCount( Math.max( 1, Math.min( MAX_PREVIEW_TABLE_ROW, parsedValue ) ) );
@@ -94,7 +94,7 @@ export default function TablePlaceholder( { setAttributes }: Props ) {
 
 	const onToggleFooterSection = ( section: boolean ) => setFooterSection( section );
 
-	const tableClasses: string = clsx( 'ftb-placeholder__table', {
+	const tableClasses = clsx( 'ftb-placeholder__table', {
 		'is-overflow-row': totalRowCount && totalRowCount > THRESHOLD_PREVIEW_TABLE_ROW,
 		'is-overflow-col': colCount && colCount > THRESHOLD_PREVIEW_TABLE_COL,
 	} );
